@@ -39,13 +39,11 @@ where
     pub fn add(&mut self, value: T) {
         self.items.push(value);
         self.count += 1;
-        let mut index = self.count;
-        while index > 1
-            && (self.comparator)(&self.items[index], &self.items[self.parent_idx(index)])
-        {
-            let parent_idx = self.parent_idx(index);
-            self.items.swap(index, parent_idx);
-            index = self.parent_idx(index);
+        let mut idx = self.count;
+        while self.parent_idx(idx) >= 1 && (self.comparator)(&self.items[idx], &self.items[self.parent_idx(idx)]) {
+            let parent = self.parent_idx(idx);
+            self.items.swap(idx, parent);
+            idx = parent;
         }
     }
 
@@ -67,15 +65,14 @@ where
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
         if self.right_child_idx(idx) > self.count {
-            self.left_child_idx(idx)
+            return self.left_child_idx(idx)
+        }
+        let left = self.left_child_idx(idx);
+        let right = self.right_child_idx(idx);
+        if (self.comparator)(&self.items[left], &self.items[right]) {
+            left
         } else {
-            let left = &self.items[self.left_child_idx(idx)];
-            let right = &self.items[self.right_child_idx(idx)];
-            if (self.comparator)(left, right) {
-                self.left_child_idx(idx)
-            } else {
-                self.right_child_idx(idx)
-            }
+            right
         }
     }
 }
@@ -102,23 +99,21 @@ where
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        if self.is_empty() {
+        if self.count == 0 {
             return None;
         }
-        self.items.swap(1, self.count);
+        let next = Some(self.items.swap_remove(1));
         self.count -= 1;
-        let ret = self.items.pop();
-        let mut index = 1;
-        while self.children_present(index) {
-            let smallest_child_idx = self.smallest_child_idx(index);
-            if (self.comparator)(&self.items[index], &self.items[smallest_child_idx]) {
+        let mut idx = 1;
+        while self.children_present(idx) {
+            let child_idx = self.smallest_child_idx(idx);
+            if (self.comparator)(&self.items[idx], &self.items[child_idx]) {
                 break;
             }
-            self.items.swap(index, smallest_child_idx);
-            index = smallest_child_idx;
+            self.items.swap(idx, child_idx);
+            idx = child_idx;
         }
-
-        ret
+        next
     }
 }
 

@@ -26,9 +26,9 @@ impl Graph {
         visited.insert(v);
         visit_order.push(v);
 
-        for i in &self.adj[v] {
-            if(!visited.contains(i)) {
-                self.dfs_util(*i, visited, visit_order)
+        for neighbor in &self.adj[v] {
+            if !visited.contains(neighbor) {
+                self.dfs_util(*neighbor, visited, visit_order)
             }
         }
     }

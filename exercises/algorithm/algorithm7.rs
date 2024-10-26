@@ -31,12 +31,13 @@ impl<T> Stack<T> {
 		self.size += 1;
 	}
 	fn pop(&mut self) -> Option<T> {
-		if(self.size <= 0) {
-			return None
+		match self.data.pop() {
+			Some(val) => {
+				self.size -= 1;
+				Some(val)
+			},
+			None => None,
 		}
-
-		self.size -= 1;
-		self.data.pop()
 	}
 	fn peek(&self) -> Option<&T> {
 		if 0 == self.size {
@@ -105,31 +106,17 @@ impl<'a, T> Iterator for IterMut<'a, T> {
 
 fn bracket_match(bracket: &str) -> bool
 {
-	let mut st = Stack::<char>::new();
-	let mut b = bracket.chars();
-
-	while let Some(c) = b.next() {
-		println!("{}",c);
-		if(c == '(' || c == '[' || c == '{'){
-			st.push(c);
-		} 
-		
-		if c == ')' || c == ']' || c == '}' {
-			if let Some(ch) = st.pop() {
-				match (ch,c) {
-					('(',')') => continue,
-					('[',']') => continue,
-					('{','}') => continue,
-					_ => 		 return false
-					
-				}
-			} else {
-				return false
-			}
+	let mut stack = Stack::new();
+	for c in bracket.chars() {
+		match c {
+			'(' | '{' | '[' => stack.push(c),
+			')' => if stack.pop() != Some('(') { return false; },
+			'}' => if stack.pop() != Some('{') { return false; },
+			']' => if stack.pop() != Some('[') { return false; },
+			_ => ()
 		}
 	}
-	
-	st.is_empty()
+	stack.is_empty()
 }
 
 #[cfg(test)]
